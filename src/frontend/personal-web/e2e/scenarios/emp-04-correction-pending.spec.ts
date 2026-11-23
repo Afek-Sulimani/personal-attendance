@@ -1,0 +1,30 @@
+import { expect, test } from "@playwright/test";
+import { AttendancePage } from "../pages/AttendancePage";
+import { MonthlyAttendancePage } from "../pages/MonthlyAttendancePage";
+import { useActor } from "../support/sharedWorkspace";
+import { latestPastWorkday } from "../support/workday";
+
+test("EMP-04/06: submitted hours remain visible as awaiting approval", async ({ page }, testInfo) => {
+    await useActor(page, "Employee");
+    const attendance = new AttendancePage(page);
+    await attendance.open();
+    const day = latestPastWorkday();
+    await attendance.correctMissingDay(day.date);
+    await attendance.capture(testInfo, "correction-pending-calendar");
+    const report = new MonthlyAttendancePage(page);
+    await report.open();
+    const periodHeading = await page.locator("#monthly-attendance-title").innerText();
+    expect(periodHeading).toMatch(/^[A-Za-z]{3} 16, \d{4} – [A-Za-z]{3} 15, \d{4}$/);
+    await report.expectDay(day.label, "Awaiting approval", "8h 00m");
+    const total = await page.getByRole("article").filter({ hasText: "Total reported so far (including pending)" }).innerText();
+    const hours = total.match(/(\d+)h (\d+)m/);
+    expect(hours).not.toBeNull();
+    expect(Number(hours![1]) * 60 + Number(hours![2])).toBeGreaterThanOrEqual(480);
+    await expect(page.getByRole("article").filter({ hasText: "Awaiting approval" })).toContainText("8h 00m");
+    await expect(page.getByText(/NaNh|NaNm/)).toHaveCount(0);
+    await page.getByRole("button", { name: /Show 1 pending corrections in the table/ }).click();
+    await expect(page.getByRole("row", { name: new RegExp(day.label) })).toBeInViewport();
+    await expect(page.getByRole("row", { name: new RegExp(day.label) })).toContainText("Clock In 09:00");
+    await expect(page.getByRole("row", { name: new RegExp(day.label) })).toContainText("Clock Out 17:00");
+    await report.capture(testInfo, "correction-pending-report");
+});

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Personal.Attendance.Application</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Personal.Attendance.Domain/Personal.Attendance.Domain.csproj" />
+  </ItemGroup>
+</Project>

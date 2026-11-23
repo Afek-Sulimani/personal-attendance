@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3f6f6" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Personal | Local Clock Debug</title>
+  </head>
+  <body>
+    <main class="debug-page">
+      <header class="debug-header">
+        <div>
+          <p class="eyebrow">LOCAL DEVELOPMENT TOOL</p>
+          <h1>Synchronized Israel clock</h1>
+          <p class="intro">
+            This page is for local debugging. It does not save attendance records.
+            The page reads the local Personal API on load and when you request an update.
+          </p>
+        </div>
+        <span class="zone-badge">Europe/Israel</span>
+      </header>
+
+      <section class="debug-grid" aria-label="Clock diagnostics">
+        <article class="debug-card">
+          <div class="card-heading">
+            <div>
+              <p class="eyebrow">PROCESS-LOCAL ESTIMATE</p>
+              <h2>Personal clock</h2>
+            </div>
+            <span id="clock-status" class="status-pill" role="status">Starting…</span>
+          </div>
+          <p id="clock-zurich" class="clock-value" aria-live="polite">Waiting for a fresh provider sample…</p>
+          <button id="refresh-clock-button" class="action-button" type="button">Refresh local clock</button>
+          <dl class="details">
+            <div><dt>UTC instant</dt><dd id="clock-utc">—</dd></div>
+            <div><dt>Source</dt><dd id="clock-provider">—</dd></div>
+            <div><dt>Source sample</dt><dd id="clock-sample">—</dd></div>
+            <div><dt>Sample age</dt><dd id="clock-age">—</dd></div>
+            <div><dt>Request duration</dt><dd id="clock-duration">—</dd></div>
+            <div><dt>Midpoint estimate</dt><dd id="clock-compensation">—</dd></div>
+          </dl>
+          <p id="clock-error" class="error-message" role="alert" hidden></p>
+        </article>
+
+        <article class="debug-card">
+          <div class="card-heading">
+            <div>
+              <p class="eyebrow">ONE-OFF COMPARISON</p>
+              <h2>Compare with provider</h2>
+            </div>
+            <span class="provider-mark" aria-hidden="true">↔</span>
+          </div>
+          <label class="field-label" for="provider-select">External source</label>
+          <select id="provider-select">
+            <option value="timeapi-io">TimeAPI.io (primary)</option>
+            <option value="timezone-io">Timezone.io (fallback)</option>
+          </select>
+          <button id="compare-button" class="action-button" type="button">Compare now</button>
+          <div id="comparison-result" class="comparison-result" aria-live="polite">
+            <p>Comparison has not run yet.</p>
+          </div>
+          <p id="comparison-error" class="error-message" role="alert" hidden></p>
+          <p class="note">
+            The comparison makes one direct provider request. Its difference is approximate because
+            the two timestamps are sampled separately and include network delay.
+          </p>
+        </article>
+      </section>
+
+      <footer class="debug-note">
+        <strong>Provider traffic</strong>
+        <p>The page reads the in-process API clock on load or when you press “Refresh local clock.” External providers are contacted at startup and on the hourly schedule; an API read may request a throttled refresh when no fresh sample exists. “Compare now” makes one direct provider request.</p>
+      </footer>
+    </main>
+    <script type="module" src="/src/clock-debug.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Personal.Attendance.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>
