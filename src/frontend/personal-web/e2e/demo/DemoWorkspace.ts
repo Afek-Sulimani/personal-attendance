@@ -56,6 +56,17 @@ export class DemoWorkspace {
     return workspace;
   }
 
+  static async fromActivatedCompany(baseURL: string, companyCode: string, email: string): Promise<DemoWorkspace> {
+    if (!["localhost", "127.0.0.1"].includes(new URL(baseURL).hostname)) throw new Error("Demo setup requires localhost.");
+    const workspace = new DemoWorkspace(baseURL);
+    workspace.companyCode = companyCode;
+    workspace.adminContext = await workspace.context();
+    const admin = await workspace.login(workspace.adminContext, email);
+    workspace.sessions.set("Admin", workspace.adminContext);
+    workspace.actors.set("Admin", {email, displayName: "Alex Morgan", membershipId: admin.membershipId, role: "Admin"});
+    return workspace;
+  }
+
   actor(role: TestActor["role"]): TestActor {
     const actor = this.actors.get(role);
     if (!actor) throw new Error(`${role} was not created for this test.`);

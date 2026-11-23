@@ -1,14 +1,46 @@
 import { test, expect } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
+import { CompanyRegistrationPage } from "../pages/CompanyRegistrationPage";
+import { ActivationPage } from "../pages/ActivationPage";
+import { LoginPage } from "../pages/LoginPage";
+import { TEST_PASSWORD } from "../support/TestWorkspace";
 import { DemoWorkspace } from "./DemoWorkspace";
 import { AttendancePage } from "../pages/AttendancePage";
 import { CorrectionReviewPage } from "../pages/CorrectionReviewPage";
 import { latestPastWorkday } from "../support/workday";
 
 test("Record a synthetic company attendance and manager approval tour", async({browser,baseURL})=>{
- const workspace=await DemoWorkspace.create(baseURL!);
+ let workspace: DemoWorkspace | undefined;
  let recordingContext;
  try {
+  await mkdir("test-results/demo-media",{recursive:true});
+  recordingContext=await browser.newContext({baseURL,viewport:{width:1440,height:960},recordVideo:{dir:"test-results/demo-media",size:{width:1440,height:960}}});
+  const page=await recordingContext.newPage(); const video=page.video()!;
+  async function chapter(text:string){
+   await page.evaluate(text=>{document.querySelector("#demo-caption")?.remove();const caption=document.createElement("div");caption.id="demo-caption";caption.textContent=`FICTIONAL DATA · ${text}`;caption.style.cssText="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:99999;background:#103d4c;color:white;padding:14px 28px;border-radius:16px;font:600 18px system-ui;box-shadow:0 6px 28px #0003;white-space:nowrap";document.body.append(caption);},text);
+   await page.waitForTimeout(3000);
+  }
+  const id = `${Date.now()}`;
+  const adminEmail = `alex.morgan-${id}@example.test`;
+  const registrationPage = new CompanyRegistrationPage(page);
+  await registrationPage.open();
+  await page.getByLabel("Company name", {exact:true}).fill(`Northstar Studio ${id.slice(-6)}`);
+  await page.getByLabel("Company representative name").fill("Alex Morgan");
+  await page.getByLabel("Company representative email").fill(adminEmail);
+  await chapter("Register a company · Create the first Admin account");
+  const registration = await registrationPage.register(`Northstar Studio ${id.slice(-6)}`, "Alex Morgan", adminEmail);
+  await chapter("Company created · Share the single-use activation link");
+  const activation = new ActivationPage(page);
+  await activation.openLink(registration.activationUrl);
+  await page.getByRole("textbox", {name:"Choose a password"}).fill(TEST_PASSWORD);
+  await page.getByRole("textbox", {name:"Confirm password"}).fill(TEST_PASSWORD);
+  await chapter("Activate the account · Choose and confirm a password");
+  await activation.activate(TEST_PASSWORD);
+  await chapter("Welcome back · Company name or ID, email and password");
+  const login = new LoginPage(page);
+  await login.signIn(registration.companyCode, adminEmail, TEST_PASSWORD);
+  await chapter("Alex Morgan · First sign-in as company Admin");
+  workspace = await DemoWorkspace.fromActivatedCompany(baseURL!, registration.companyCode, adminEmail);
   await workspace.invite("PayrollRepresentative"); await workspace.invite("HR");
   await workspace.invite("TeamLead"); await workspace.invite("Employee","TeamLead");
   await workspace.configureCompany();
@@ -21,13 +53,14 @@ test("Record a synthetic company attendance and manager approval tour", async({b
   const review=new CorrectionReviewPage(setupPage);await review.open();
   for(const offset of [4,3,2]) await review.approve("Lucas Silva",latestPastWorkday(offset).date);
   await setup.close();
-  await mkdir("test-results/demo-media",{recursive:true});
-  recordingContext=await browser.newContext({baseURL,storageState:state.sessions.Employee,viewport:{width:1440,height:960},recordVideo:{dir:"test-results/demo-media",size:{width:1440,height:960}}});
-  const page=await recordingContext.newPage(); const video=page.video()!;
-  async function chapter(text:string){
-   await page.evaluate(text=>{document.querySelector("#demo-caption")?.remove();const caption=document.createElement("div");caption.id="demo-caption";caption.textContent=`FICTIONAL DATA · ${text}`;caption.style.cssText="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:99999;background:#103d4c;color:white;padding:14px 28px;border-radius:16px;font:600 18px system-ui;box-shadow:0 6px 28px #0003;white-space:nowrap";document.body.append(caption);},text);
-   await page.waitForTimeout(3000);
-  }
+  await recordingContext.clearCookies();
+  await login.open();
+  await page.getByRole("textbox", {name:"Company name or ID"}).fill(registration.companyCode);
+  await page.getByRole("textbox", {name:"Email",exact:true}).fill(state.actors.Employee.email);
+  await page.getByRole("textbox", {name:"Password",exact:true}).fill(TEST_PASSWORD);
+  await chapter("Lucas Silva · Employee sign-in");
+  await page.getByRole("button", {name:"Sign in",exact:true}).click();
+  await expect(page.getByRole("heading", {name:"My attendance",exact:true})).toBeVisible();
   const employee=new AttendancePage(page);await employee.open();
   await chapter("Lucas Silva · Employee workspace");
   await employee.clockIn();await chapter("Clock In · Time verified by an external provider");
@@ -52,5 +85,5 @@ test("Record a synthetic company attendance and manager approval tour", async({b
   await recordingContext.close();recordingContext=undefined;
   await video.saveAs("test-results/demo-media/attendance-demo.webm");
   await writeFile("test-results/demo-media/README.txt","Recorded against a real local API and disposable SQL database. All people and company data are fictional. No Google credentials, real employee data or passwords are shown.\n");
- } finally {await recordingContext?.close();await workspace.dispose();}
+ } finally {await recordingContext?.close();await workspace?.dispose();}
 });

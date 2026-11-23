@@ -2,9 +2,9 @@
 
 ## Product demo
 
-[![Watch the product demo](docs/demo/attendance-demo-poster.png)](https://github.com/Afek-Sulimani/personal-attendance/raw/refs/heads/main/docs/demo/attendance-demo.mp4)
+[![Watch registration, sign-in and attendance demo](docs/demo/attendance-demo-poster.png)](https://github.com/Afek-Sulimani/personal-attendance/raw/refs/heads/main/docs/demo/attendance-demo.mp4)
 
-[Watch the 34-second demo](https://github.com/Afek-Sulimani/personal-attendance/raw/refs/heads/main/docs/demo/attendance-demo.mp4) · Fictional international team · English captions · Real application flows.
+[Watch the full product demo](https://github.com/Afek-Sulimani/personal-attendance/raw/refs/heads/main/docs/demo/attendance-demo.mp4) · Fictional international team · English captions · Real application flows.
 
 
 

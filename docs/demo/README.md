@@ -1,6 +1,6 @@
 # Product demo
 
-[Watch the 34-second demo](attendance-demo.mp4)
+[Watch the full product demo](attendance-demo.mp4)
 
 ![Payroll-period report preview](attendance-demo-poster.png)
 
@@ -8,10 +8,12 @@ The recording uses a real local application and disposable SQL database. All peo
 company names and account data are fictional. The company is Northstar Studio and the
 sample team includes Alex Morgan (Admin), Sofia Rossi (Payroll), Kenji Tanaka (HR),
 Amara Okafor (Team lead) and Lucas Silva (Employee). No real employee information,
-passwords, activation links or API credentials are included. The video has English captions
+readable passwords, raw activation tokens or API credentials are included. The video has English captions
 and no audio.
 
-The tour shows live Clock In/Out, a historical correction, pending hours in the monthly
+The tour starts with company registration, first-account activation with masked password
+fields, Admin sign-in and employee sign-in. It then shows live Clock In/Out, a historical
+correction, pending hours in the monthly
 report, CSV download, manager approval, company settings and member invitations.
 Google OAuth and LLM assistance are not demonstrated.
 
